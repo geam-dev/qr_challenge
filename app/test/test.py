@@ -137,6 +137,24 @@ def test_qrcodes(auth_token):
         assert qr["color"] == "blue"
         assert qr["size"] == "15"
 
+        # Test Get QR
+        qr_response = client.get(
+            f"/qrcode?qr_uuid={qr['uuid']}",
+            headers={
+                "Authorization": f"Bearer {auth_token}"
+            }
+        )
+
+        assert qr_response.status_code == 200
+        assert qr_response.headers["content-type"] == "image/png"
+
+        not_authorized_response = client.get(
+            f"/qrcode?qr_uuid={qr['uuid']}"
+        )
+
+        assert not_authorized_response.status_code == 401
+        assert "Not authenticated" in not_authorized_response.json()["detail"]
+
 
 def test_analytics(auth_token):
     response = client.get(
@@ -151,7 +169,6 @@ def test_analytics(auth_token):
     for qr in response.json():
         assert qr["scans_count"] == len(qr["scans"])
 
-    
 
 
 
