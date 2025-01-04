@@ -15,7 +15,7 @@ from models import User
 from tempfile import NamedTemporaryFile
 from services import get_qr_code_img_bytes
 
-import os, qrcode, io, requests, ipaddress, ipinfo
+import os, qrcode, io, ipaddress, ipinfo
 
 app = FastAPI()
 
