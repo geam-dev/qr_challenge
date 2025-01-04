@@ -55,10 +55,26 @@ def update_qr_code(
     qr_code: QrCodeUpdate,
     user_uuid: str,
 ):
-    return db.query(QrCode).filter(
+    db_qr_code = db.query(QrCode).filter(
         QrCode.uuid == qr_code.uuid,
         QrCode.user_uuid == user_uuid,
     ).first()
+
+    if not db_qr_code:
+        return None 
+    
+    if qr_code.url:
+        db_qr_code.url = qr_code.url 
+    if qr_code.color:
+        db_qr_code.color = qr_code.color
+    if qr_code.size:
+        db_qr_code.size = qr_code.size
+    
+    db_qr_code.updated_at = func.now()
+
+    db.commit()
+    db.refresh(db_qr_code)
+    return db_qr_code
 
 
 def get_qr_code(
@@ -86,15 +102,50 @@ def create_scan(
     qr_uuid: str,
     client_ip: str,
     country: str,
-    timezone: str,
 ):
     db_scan = Scan(
         qr_uuid=qr_uuid,
         ip=client_ip,
         country=country,
-        timezone=timezone,
     )
     db.add(db_scan)
     db.commit()
     db.refresh(db_scan)
     return db_scan
+
+
+# Stats
+def get_qr_code_analytics(
+    db: Session,
+    user_uuid: str,
+):
+    db_qr_codes = db.query(QrCode).filter(
+        QrCode.user_uuid == user_uuid
+    ).all()
+
+    result = []
+
+    for db_qr_code in db_qr_codes:
+        scans = db.query(Scan).filter(
+            Scan.qr_uuid == db_qr_code.uuid
+        ).all()
+
+        qr_code_info = {
+            "uuid": db_qr_code.uuid,
+            "url": db_qr_code.url,
+            "color": db_qr_code.color,
+            "size": db_qr_code.size,
+            "scans_count": len(scans),
+            "scans": [
+                {
+                    "uuid": scan.uuid,
+                    "ip": scan.ip,
+                    "country": scan.country,
+                    "created_at": scan.created_at,
+                } for scan in scans
+            ]
+        }
+
+        result.append(qr_code_info)
+    
+    return result

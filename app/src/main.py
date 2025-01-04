@@ -15,7 +15,7 @@ from models import User
 from tempfile import NamedTemporaryFile
 from services import get_qr_code_img_bytes
 
-import os, qrcode, io, requests
+import os, qrcode, io, requests, ipaddress, ipinfo
 
 app = FastAPI()
 
@@ -51,6 +51,13 @@ def register(
     user: schemas.UserCreate,
     db: Session = Depends(dependencies.get_db)
 ):
+    db_user = crud.get_user_by_email(db=db, email=user.email)
+    if db_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered",
+        )
+
     db_user = crud.create_user(db=db, email=user.email, password_hash=auth.get_password_hash(user.password))
     return {"email": db_user.email}
 
@@ -146,9 +153,37 @@ async def scan_qr_code(
     qr_uuid: str = Query(...),
     db: Session = Depends(dependencies.get_db)
 ):
-    db_qr = get_qr_code(db=db, qr_uuid=qr_uuid)
+    # Validate client ip and store scan
+    client_ip = request.client.host if request.client else None 
+    x_forwarded_for = request.headers.get('X-Forwarded-For')
+    if x_forwarded_for:
+        client_ip = x_forwarded_for.split(',')[0].strip()
+    try:
+        ipaddress.ip_address(client_ip)
+    except ValueError:
+        client_ip = None
 
-    # TODO: Capture request data
+    if not client_ip:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Client IP not valid",
+        )
+    
+    ipinfo_handler = ipinfo.getHandler(os.getenv('IP_INFO_ACCESS_TOKEN'))
+    
+    if client_ip == '127.0.0.1':
+        ipinfo_details = ipinfo_handler.getDetails()
+    else:
+        ipinfo_details = ipinfo_handler.getDetails(client_ip)
+
+    db_scan = crud.create_scan(
+        db=db,
+        qr_uuid=qr_uuid,
+        client_ip=client_ip,
+        country=ipinfo_details.country,
+    )
+    
+    db_qr = crud.get_qr_code(db=db, qr_uuid=qr_uuid)
 
     if not db_qr:
         raise HTTPException(
@@ -160,3 +195,12 @@ async def scan_qr_code(
         url=db_qr.url,
         status_code=status.HTTP_302_FOUND
     )
+
+
+# Analytics
+@app.get("/analytics")
+def get_analytics(
+    user: User = Depends(auth.get_current_user),
+    db: Session = Depends(dependencies.get_db),
+):
+    return crud.get_qr_code_analytics(db=db, user_uuid=user.uuid)
