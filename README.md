@@ -22,7 +22,7 @@ This layer contains the models that define the database structure and manages th
 - Create a virtual environment [with venv: python -m venv venv]
 - Activate the virtual environment [source venv/bin/activate]
 - Install requirements [pip install -r requirements.txt]
-- Copy `.env.template` into `.env` and edit it with your variables
+- Copy `template.env` into `.env` and edit it with your variables
 - Migrate with Alembic [alembic upgrade head]
 - Run the server [fastapi run main.py]
 
