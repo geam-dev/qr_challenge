@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from uuid import UUID
 
 
 # Auth
@@ -27,11 +28,11 @@ class QrCodeCreate(BaseModel):
 
 
 class QrCodeUpdate(QrCodeCreate):
-    uuid: str
+    uuid: UUID
 
 
 class ScanCreate(BaseModel):
-    qr_uuid: str 
+    qr_uuid: UUID 
     ip: str 
     country: str
 

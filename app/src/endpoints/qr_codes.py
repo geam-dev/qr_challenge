@@ -10,6 +10,8 @@ from src.services.client_info import get_client_country_from_ip, validate_ip
 from src.services import crud, auth
 from src import schemas, models, db
 
+from uuid import UUID
+
 import os
 
 
@@ -81,7 +83,7 @@ def update_qr_codes(
     summary="Get QR Code Image based on UUID"
 )
 def get_qr_code(
-    qr_uuid: str,
+    qr_uuid: UUID = Query(...),
     user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(db.get_db),
 ):
@@ -130,7 +132,7 @@ def get_qr_codes(
 )
 def scan_qr_code(
     request: Request,
-    qr_uuid: str = Query(...),
+    qr_uuid: UUID = Query(...),
     db: Session = Depends(db.get_db)
 ):
     # Get Client IP

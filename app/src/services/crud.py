@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session 
+from sqlalchemy.exc import DataError
 from sqlalchemy import func 
 from src.models import User, QrCode, Scan
+from src.exceptions import UUIDNotValid
 from src.schemas import (
     QrCodeCreate,
     QrCodeUpdate,
@@ -36,17 +38,19 @@ def create_qr_code(
     qr_code: QrCodeCreate,
     user_uuid: str,
 ):
-    db_qr_code = QrCode(
-        url=qr_code.url,
-        color=qr_code.color,
-        size=qr_code.size,
-        user_uuid=user_uuid
-    )
-    db.add(db_qr_code)
-    db.commit()
-    db.refresh(db_qr_code)
-    return db_qr_code
-
+    try:
+        db_qr_code = QrCode(
+            url=qr_code.url,
+            color=qr_code.color,
+            size=qr_code.size,
+            user_uuid=user_uuid
+        )
+        db.add(db_qr_code)
+        db.commit()
+        db.refresh(db_qr_code)
+        return db_qr_code
+    except DataError:
+        raise UUIDNotValid()
 
 def update_qr_code(
     db: Session,
