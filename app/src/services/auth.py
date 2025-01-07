@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 
 from sqlalchemy.orm import Session
 
@@ -7,8 +7,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from passlib.context import CryptContext 
 
-from crud import get_user_by_email
-from dependencies import get_db
+from src.services.crud import get_user_by_email
+from src.db import get_db
 
 import jwt, os
 

@@ -10,3 +10,4 @@ qrcode
 bcrypt
 pillow
 ipinfo
+alembic

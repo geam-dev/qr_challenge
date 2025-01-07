@@ -1,4 +1,4 @@
-import qrcode, io
+import qrcode, io 
 
 def get_qr_code_img_bytes(
     data: str,
@@ -17,6 +17,6 @@ def get_qr_code_img_bytes(
     qr.make(fit=True)
 
     img = qr.make_image(fill_color=color, back_color="white")
-    img.save(bytes_image, format='PNG')
+    img.save(bytes_image, format="PNG")
 
     return bytes_image.getvalue()

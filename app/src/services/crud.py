@@ -1,11 +1,9 @@
 from sqlalchemy.orm import Session 
 from sqlalchemy import func 
-from models import User, QrCode, Scan
-from schemas import (
-    UserCreate, 
+from src.models import User, QrCode, Scan
+from src.schemas import (
     QrCodeCreate,
     QrCodeUpdate,
-    ScanCreate
 )
 
 # Users
@@ -80,9 +78,11 @@ def update_qr_code(
 def get_qr_code(
     db: Session,
     qr_uuid: str,
+    user_uuid: str,
 ):
     return db.query(QrCode).filter(
-        QrCode.uuid==qr_uuid
+        QrCode.uuid == qr_uuid,
+        QrCode.user_uuid == user_uuid,
     ).first()
 
 def get_user_qr_codes(
@@ -119,6 +119,7 @@ def get_qr_code_analytics(
     db: Session,
     user_uuid: str,
 ):
+    # Get all user QRCodes
     db_qr_codes = db.query(QrCode).filter(
         QrCode.user_uuid == user_uuid
     ).all()
@@ -126,10 +127,12 @@ def get_qr_code_analytics(
     result = []
 
     for db_qr_code in db_qr_codes:
+        # Get QRCode scans
         scans = db.query(Scan).filter(
             Scan.qr_uuid == db_qr_code.uuid
         ).all()
 
+        # Parse QRCode data and scans data
         qr_code_info = {
             "uuid": db_qr_code.uuid,
             "url": db_qr_code.url,
@@ -146,6 +149,7 @@ def get_qr_code_analytics(
             ]
         }
 
+        # Add to result
         result.append(qr_code_info)
     
     return result

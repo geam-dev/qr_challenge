@@ -1,10 +1,8 @@
 from datetime import datetime
 from sqlalchemy import (
-    BigInteger,
     DateTime,
     UUID,
     ForeignKey,
-    Integer,
     MetaData,
     String,
     func,
