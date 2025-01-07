@@ -1,6 +1,7 @@
-import sys, os 
+import sys
 from pathlib import Path 
 
-_path_ = Path(__file__).resolve().parent.parent
+src_path = Path(__file__).resolve().parent.parent
 
-sys.path.append(_path_)
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
