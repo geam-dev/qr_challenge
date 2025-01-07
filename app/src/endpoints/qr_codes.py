@@ -88,10 +88,10 @@ def get_qr_code(
     db: Session = Depends(db.get_db),
 ):
     # Get QRCode based on qr_uuid and user_uuid
-    db_qr = crud.get_qr_code(db=db, qr_uuid=qr_uuid, user_uuid=user.uuid)
+    db_qr = crud.get_qr_code(db=db, qr_uuid=qr_uuid)
 
-    # If not found
-    if not db_qr:
+    # Check if QRCode exists and check owner
+    if not db_qr or db_qr.user_uuid != user.uuid:
         raise HTTPException(
             status_code=404,
             detail="QR Code with that uuid not found for logged user."

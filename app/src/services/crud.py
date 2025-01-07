@@ -82,11 +82,9 @@ def update_qr_code(
 def get_qr_code(
     db: Session,
     qr_uuid: str,
-    user_uuid: str,
 ):
     return db.query(QrCode).filter(
         QrCode.uuid == qr_uuid,
-        QrCode.user_uuid == user_uuid,
     ).first()
 
 def get_user_qr_codes(
